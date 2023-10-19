@@ -1,71 +1,41 @@
 #%%
 
 import pandas as pd
-import folium
-import random
-from branca.element import Template, MacroElement
+import networkx as nx
+from geopy.distance import geodesic
 
-data = pd.read_csv("lista.csv")
+# Cargar el dataset
+data = pd.read_csv("flights_final.csv")
 
-coordenadas_aeropuertos = {}
+# Obtener los códigos únicos de aeropuertos
+codigos_aeropuertos_unicos_Source = data['Source Airport Code']
+codigos_aeropuertos_unicos_Destination = data['Destination Airport Code']
+
+# Inicializar un nuevo DataFrame vacío
+nuevo_data = pd.DataFrame(columns=data.columns)
+multilista = []
+filas_cumplen = []
+
+# Crear un grafo completo
+G = nx.Graph()
+
+# Iterar a través de las filas del DataFrame
 for index, row in data.iterrows():
-    origen = (row['Source Airport Latitude'], row['Source Airport Longitude'])
-    destino = (row['Destination Airport Latitude'], row['Destination Airport Longitude'])
+    valor1 = row['Source Airport Code']
+    valor2 = row['Destination Airport Code']
+    
+    # Asegurarte de que los dos valores no sean iguales a los de otra sublista
+    if (valor1, valor2) not in multilista and (valor2, valor1) not in multilista:
+        filas_cumplen.append(row)
+        multilista.append((valor1, valor2))
 
-    coordenadas_aeropuertos[row['Source Airport Code']] = origen
-    coordenadas_aeropuertos[row['Destination Airport Code']] = destino
+cantidad_de_sublistas = sum(1 for sublista in multilista if len(sublista) == 2)
 
-initial_location = coordenadas_aeropuertos[list(coordenadas_aeropuertos.keys())[0]]
-mapa = folium.Map()
+print("Cantidad de sublistas con exactamente dos elementos:", cantidad_de_sublistas)
+nuevo_data = pd.DataFrame(filas_cumplen)
 
-airport_codes = list(coordenadas_aeropuertos.keys())
+nuevo_data.to_csv("flights_clean.csv", index=False)
 
-# Agregar todos los marcadores al mapa en un FeatureGroup
-todos_los_aeropuertos = folium.FeatureGroup(name="Todos los aeropuertos")
-for airport_code in airport_codes:
-    marker = folium.Marker(
-        location=coordenadas_aeropuertos[airport_code],
-        popup=airport_code,
-    )
-    todos_los_aeropuertos.add_child(marker)
-
-#mapa.add_child(todos_los_aeropuertos)
-
-# Crear un panel lateral con botones
-template = """
-{% macro html(this, kwargs) %}
-
-<div id="mydiv" style="position: fixed; bottom: 60px; left: 60px; width: 250px; height: 140px; z-index:9999; font-size:14px;">
-    <input type="button" value="Mostrar todos los aeropuertos" onclick="showAllAirports();">
-    <input type="button" value="Mostrar aeropuerto específico" onclick="showSpecificAirport();">
-    <input type="button" value="Mostrar  segundo  aeropuerto" onclick="showRandomAirport();">
-</div>
-
-<script>
-function showAllAirports() {
-    // Aquí va tu código para mostrar todos los aeropuertos
-}
-
-function showSpecificAirport() {
-    // Aquí va tu código para mostrar un aeropuerto específico
-}
-
-function showRandomAirport() {
-    // Aquí va tu código para mostrar un aeropuerto aleatorio
-}
-</script>
-
-{% endmacro %}
-"""
-
-macro = MacroElement()
-macro._template = Template(template)
-
-mapa.get_root().add_child(macro)
-
-# Guardar el mapa en un archivo HTML
-mapa.save("mapa.html")
-
-
+nuevo_data
 
 # %%
