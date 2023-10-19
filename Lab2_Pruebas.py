@@ -111,15 +111,7 @@ for sublist in conexiones:
 #Crear mapa
 mapa = folium.Map()
 
-#Agrega al mapa todas las ubicaciones incluendo las conexiones (muy lento)
-def ConstruirGrafoConAristasMapa():
-    for nodo in G.nodes():
-        latitud = G.nodes[nodo]['latitud']
-        longitud = G.nodes[nodo]['longitud']
-    
-        # Agregar un marcador para cada ubicación
-        folium.Marker([latitud, longitud], popup=nodo).add_to(mapa)
-
+def DibujarAristas():
     for u, v in G.edges():
         latitud_u = G.nodes[u]['latitud']
         longitud_u = G.nodes[u]['longitud']
@@ -131,11 +123,22 @@ def ConstruirGrafoConAristasMapa():
         folium.PolyLine([(latitud_u, longitud_u), (latitud_v, longitud_v)],
                         color='blue', weight=2.5,
                         popup=f'Distancia: {peso} km').add_to(mapa)
+
+#Agrega al mapa todas las ubicaciones incluendo las conexiones (muy lento)
+def MostrarNodosMapa():
+    for nodo in G.nodes():
+        latitud = G.nodes[nodo]['latitud']
+        longitud = G.nodes[nodo]['longitud']
+        
+        # Agregar un marcador para cada ubicación
+        folium.Marker([latitud, longitud], popup=nodo).add_to(mapa)
+        
+        #DibujarAristas()
         
     mapa.save("mapa.html")
 
 #Ejemplo de prueba para la variable que recibe el codigo del aeropuerto
-code = 'DXB'
+code = 'MIA'
 
 def Crear10Caminos():
     # Utiliza el algoritmo de Dijkstra para encontrar los caminos mínimos desde el vértice de inicio
@@ -154,7 +157,7 @@ def Crear10Caminos():
     # Itera a través de los 10 aeropuertos más lejanos
     for aeropuerto in aeropuertos_mas_lejanos:
         # Agrega un marcador para cada aeropuerto
-        folium.Marker(location=[aeropuertos[aeropuerto]['latitud'], aeropuertos[aeropuerto]['longitud']], popup=f'Código: {aeropuerto}').add_to(mapa)
+        folium.Marker(location=[aeropuertos[aeropuerto]['latitud'], aeropuertos[aeropuerto]['longitud']], popup=f'Código: {aeropuerto}\n Nombre: {aeropuertos[aeropuerto]["nombre"]}\n Ciudad: {aeropuertos[aeropuerto]["ciudad"]}\n País: {aeropuertos[aeropuerto]["pais"]}\n Latitud: {aeropuertos[aeropuerto]["latitud"]}\n Longitud: {aeropuertos[aeropuerto]["longitud"]}').add_to(mapa)
     
         # Calcula la distancia en kilómetros entre el aeropuerto de inicio y el aeropuerto actual
         distancia_km = longitudes_caminos_ordenadas[aeropuerto]
@@ -203,10 +206,13 @@ def MostrarCaminoMinimo(origen, destino):
     mapa.save("mapa.html")
 
 #Ejemplo de el segundo codigo de aeropuerto
-code2 = "PPG"
+code2 = "BVB"
 
 # Llamar a la función para mostrar el camino mínimo desde "BOG" hasta otro aeropuerto
-MostrarCaminoMinimo(code, code2)
+#MostrarCaminoMinimo(code, code2)
+Crear10Caminos()
+#MostrarNodosMapa()
+#mapa
 
 #Crear10Caminos()
 
